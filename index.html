@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E100 Advento Kalendorius</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .logo {
+            width: 200px;
+            height: auto;
+            margin: 0 auto 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .logo img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .calendar-container {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+        }
+
+        .day-card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #c41e3a 0%, #8b1728 100%);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .day-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+
+        .day-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+
+        .day-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 1;
+        }
+
+        .day-icon {
+            font-size: 1.5em;
+            margin-top: 5px;
+            z-index: 1;
+        }
+
+        .day-card:nth-child(4n+1) {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b1728 100%);
+        }
+
+        .day-card:nth-child(4n+2) {
+            background: linear-gradient(135deg, #165e3f 0%, #0d4029 100%);
+        }
+
+        .day-card:nth-child(4n+3) {
+            background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+        }
+
+        .day-card:nth-child(4n+4) {
+            background: linear-gradient(135deg, #b8860b 0%, #8b6914 100%);
+        }
+
+        .day-card.opened {
+            opacity: 0.6;
+            transform: scale(0.95);
+        }
+
+        .day-card.opened:hover {
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 768px) {
+            .calendar-container {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .logo {
+                width: 150px;
+                padding: 15px;
+            }
+
+            .day-number {
+                font-size: 2em;
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: white;
+            font-size: 1em;
+            animation: fall linear infinite;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="data:image/png;base64,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" alt="E100 Logo">
+        </div>
+        <h1>🎄 Advento Kalendorius 🎄</h1>
+        <p class="subtitle">Spauskite ant dienų ir atrasite nuostabius dalykus!</p>
+    </div>
+
+    <div class="calendar-container" id="calendar">
+        <!-- Dienos bus sugeneruotos JavaScript'u -->
+    </div>
+
+    <script>
+        // Nuorodos kiekvienai dienai (galite pakeisti į savo)
+        const dayLinks = {
+            1: 'https://example.com/day1',
+            2: 'https://example.com/day2',
+            3: 'https://example.com/day3',
+            4: 'https://example.com/day4',
+            5: 'https://example.com/day5',
+            6: 'https://example.com/day6',
+            7: 'https://example.com/day7',
+            8: 'https://example.com/day8',
+            9: 'https://example.com/day9',
+            10: 'https://example.com/day10',
+            11: 'https://example.com/day11',
+            12: 'https://example.com/day12',
+            13: 'https://example.com/day13',
+            14: 'https://example.com/day14',
+            15: 'https://example.com/day15',
+            16: 'https://example.com/day16',
+            17: 'https://example.com/day17',
+            18: 'https://example.com/day18',
+            19: 'https://example.com/day19',
+            20: 'https://example.com/day20',
+            21: 'https://example.com/day21',
+            22: 'https://example.com/day22',
+            23: 'https://example.com/day23',
+            24: 'https://example.com/day24'
+        };
+
+        // Ikonėlės kiekvienai dienai
+        const dayIcons = ['🎁', '⭐', '🎅', '🔔', '🕯️', '❄️', '🎄', '🦌'];
+
+        // Generuojame kalendoriaus dienas
+        const calendar = document.getElementById('calendar');
+        
+        for (let day = 1; day <= 24; day++) {
+            const dayCard = document.createElement('div');
+            dayCard.className = 'day-card';
+            dayCard.innerHTML = `
+                <div class="day-number">${day}</div>
+                <div class="day-icon">${dayIcons[day % dayIcons.length]}</div>
+            `;
+            
+            // Pridedame click event listener
+            dayCard.addEventListener('click', function() {
+                // Pažymime kaip atidarytą
+                this.classList.add('opened');
+                
+                // Išsaugome localStorage
+                localStorage.setItem(`day${day}`, 'opened');
+                
+                // Atidarome nuorodą naujame lange
+                window.open(dayLinks[day], '_blank');
+            });
+            
+            // Patikriname ar diena jau buvo atidaryta
+            if (localStorage.getItem(`day${day}`) === 'opened') {
+                dayCard.classList.add('opened');
+            }
+            
+            calendar.appendChild(dayCard);
+        }
+
+        // Sniego efektas
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.innerHTML = '❄';
+            snowflake.style.left = Math.random() * 100 + '%';
+            snowflake.style.animationDuration = Math.random() * 3 + 2 + 's';
+            snowflake.style.opacity = Math.random();
+            snowflake.style.fontSize = Math.random() * 10 + 10 + 'px';
+            
+            document.body.appendChild(snowflake);
+            
+            setTimeout(() => {
+                snowflake.remove();
+            }, 5000);
+        }
+
+        // Sukuriame snaiges kas 300ms
+        setInterval(createSnowflake, 300);
+    </script>
+</body>
+</html>
